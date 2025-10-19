@@ -179,7 +179,7 @@ make build-cli
 
 **Configure initial environment:**
 ```bash
-./cmd/aws-deployer/aws-deployer targets config \
+aws-deployer targets config \
   --env <env> \
   --default \
   --initial-env dev
@@ -191,7 +191,7 @@ Note: `--downstream-env` specifies where this environment promotes TO (the next 
 
 For dev (promotes to staging):
 ```bash
-./cmd/aws-deployer/aws-deployer targets set \
+aws-deployer targets set \
   --env <env> \
   --target-env dev \
   --default \
@@ -202,7 +202,7 @@ For dev (promotes to staging):
 
 For staging (promotes to prd):
 ```bash
-./cmd/aws-deployer/aws-deployer targets set \
+aws-deployer targets set \
   --env <env> \
   --target-env staging \
   --default \
@@ -213,7 +213,7 @@ For staging (promotes to prd):
 
 For production (final environment, no promotion):
 ```bash
-./cmd/aws-deployer/aws-deployer targets set \
+aws-deployer targets set \
   --env <env> \
   --target-env prd \
   --default \
@@ -223,7 +223,7 @@ For production (final environment, no promotion):
 
 **Verify target configuration:**
 ```bash
-./cmd/aws-deployer/aws-deployer targets list --env <env>
+aws-deployer targets list --env <env>
 ```
 
 ### 7. Set Up GitHub Repository for CI/CD
@@ -244,7 +244,7 @@ aws secretsmanager create-secret \
 
 **Create GitHub OIDC role and secrets:**
 ```bash
-./cmd/aws-deployer/aws-deployer setup-github \
+aws-deployer setup-github \
   --role-name github-actions-<repo-name> \
   --repo owner/repository-name \
   --bucket <artifacts-bucket> \
@@ -285,7 +285,9 @@ jobs:
 
           REPO="<repo>"
           BRANCH="${{ github.ref_name }}"
-          VERSION="${{ github.run_number }}.${{ github.sha }}"
+          SHA_SHORT="${{ github.sha }}"
+          SHA_SHORT="${SHA_SHORT:0:6}"
+          VERSION="${{ github.run_number }}.${SHA_SHORT}"
           S3_PREFIX="${REPO}/${BRANCH}/${VERSION}"
 
           cat > cloudformation-params.json <<EOF
@@ -301,7 +303,9 @@ jobs:
         run: |
           REPO="<repo>"
           BRANCH="${{ github.ref_name }}"
-          VERSION="${{ github.run_number }}.${{ github.sha }}"
+          SHA_SHORT="${{ github.sha }}"
+          SHA_SHORT="${SHA_SHORT:0:6}"
+          VERSION="${{ github.run_number }}.${SHA_SHORT}"
           S3_PATH="s3://<bucket>/${REPO}/${BRANCH}/${VERSION}/"
 
           aws s3 cp cloudformation.template "${S3_PATH}"
@@ -411,7 +415,7 @@ aws dynamodb query \
 For multi-account deployments, set up IAM roles in target accounts:
 
 ```bash
-./cmd/aws-deployer/aws-deployer setup-aws \
+aws-deployer setup-aws \
   --account-id <target-account-id> \
   --admin-account-id <deployer-account-id> \
   --role-name AWSCloudFormationStackSetExecutionRole
