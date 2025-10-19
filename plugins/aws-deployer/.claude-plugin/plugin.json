@@ -19,5 +19,6 @@
     "step-functions",
     "multi-account",
     "ci-cd"
-  ]
+  ],
+  "skills": "./skills/"
 }
