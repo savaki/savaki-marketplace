@@ -1,3 +1,8 @@
+---
+name: setup-deployer
+description: Interactive guide for setting up AWS Deployer - a serverless CloudFormation deployment automation system. Use when helping users install, configure, and test AWS Deployer for single or multi-account deployments.
+---
+
 # AWS Deployer Setup and Configuration
 
 This skill guides users through the complete setup and configuration of **AWS Deployer** ([github.com/savaki/aws-deployer](https://github.com/savaki/aws-deployer)), a serverless CloudFormation deployment automation system that orchestrates infrastructure deployments using AWS Step Functions, Lambda, and DynamoDB.
