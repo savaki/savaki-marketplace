@@ -7,6 +7,8 @@
     "email": "matt.ho@gmail.com"
   },
   "homepage": "https://github.com/savaki/aws-deployer",
+  "repository": "https://github.com/savaki/aws-deployer",
+  "license": "MIT",
   "keywords": [
     "aws",
     "cloudformation",
@@ -16,6 +18,5 @@
     "step-functions",
     "multi-account",
     "ci-cd"
-  ],
-  "skills": "./skills/"
+  ]
 }
