@@ -4,7 +4,8 @@
   "version": "1.0.0",
   "author": {
     "name": "Matt Ho",
-    "email": "matt.ho@gmail.com"
+    "email": "matt.ho@gmail.com",
+    "url": "https://github.com/savaki"
   },
   "homepage": "https://github.com/savaki/aws-deployer",
   "repository": "https://github.com/savaki/aws-deployer",
