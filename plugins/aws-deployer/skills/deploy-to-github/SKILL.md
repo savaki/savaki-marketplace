@@ -10,16 +10,17 @@ This skill automatically configures a GitHub repository to deploy via **AWS Depl
 ## Prerequisites
 
 - AWS Deployer infrastructure is already set up (use `setup-deployer` skill if not)
-- You know the S3 artifacts bucket name
 - Working directory is a Git repository with a GitHub remote
 - Repository has a `cloudformation.template` file (will be created if missing)
+- Optional: `S3_ARTIFACT_BUCKET` environment variable set to your artifacts bucket
+- Optional: `AWS_REGION` environment variable set to your AWS region
 
 ## Your Task
 
 When this skill is invoked, you will **configure** the repository for GitHub Actions deployment by:
 
 1. **Detecting repository information** - Extract repo name from `.git/config`
-2. **Asking for configuration** - Ask for S3 bucket name and confirm AWS region (default: us-west-2)
+2. **Getting configuration** - Check environment variables (`S3_ARTIFACT_BUCKET`, `AWS_REGION`) first, ask only if not set
 3. **Detecting build system** - Identify build command from project files
 4. **Creating/updating GitHub workflow** - Generate `.github/workflows/deploy.yml`
 5. **Updating CloudFormation template** - Ensure required parameters exist
@@ -27,7 +28,9 @@ When this skill is invoked, you will **configure** the repository for GitHub Act
 7. **Explaining OIDC setup** - Provide instructions for running `aws-deployer setup-github` and configuring GitHub secrets
 
 **Important**:
-- Minimize questions. Only ask for S3 bucket name, AWS region confirmation, and build command if not detectable.
+- Check environment variables first: `S3_ARTIFACT_BUCKET` and `AWS_REGION`
+- Only ask for values if environment variables are not set
+- Default AWS region to `us-west-2` if not set
 - Do NOT run the `aws-deployer setup-github` command. Explain to the user how to run it.
 - Explain that THREE GitHub secrets are required: `AWS_ROLE_ARN`, `S3_ARTIFACT_BUCKET`, and `AWS_REGION`.
 
@@ -46,16 +49,28 @@ Parse the result to extract `owner/repo`:
 
 Store as `REPO_FULL_NAME` (e.g., `foo/bar`)
 
-## Step 2: Ask for Configuration
+## Step 2: Get Configuration
 
-**S3 Bucket**: Ask the user for the S3 artifacts bucket name.
-- Example: `my-artifacts-bucket`
-- This will be stored as a GitHub secret `S3_ARTIFACT_BUCKET`
+**S3 Bucket**:
+1. Check if `S3_ARTIFACT_BUCKET` environment variable is set
+   ```bash
+   echo $S3_ARTIFACT_BUCKET
+   ```
+2. If set, use that value
+3. If not set, ask the user for the S3 artifacts bucket name
+   - Example: `my-artifacts-bucket`
+   - This will be stored as a GitHub secret `S3_ARTIFACT_BUCKET`
 
-**AWS Region**: Ask the user to confirm the AWS region, providing options:
-- Default: `us-west-2`
-- Other common options: `us-east-1`, `us-east-2`, `eu-west-1`, `ap-southeast-1`
-- Allow custom input
+**AWS Region**:
+1. Check if `AWS_REGION` environment variable is set
+   ```bash
+   echo $AWS_REGION
+   ```
+2. If set, use that value
+3. If not set, ask the user to confirm the AWS region, providing options:
+   - Default: `us-west-2`
+   - Other common options: `us-east-1`, `us-east-2`, `eu-west-1`, `ap-southeast-1`
+   - Allow custom input
 
 **Initial Environment**: Default to `dev` (don't ask)
 
@@ -560,7 +575,7 @@ After running this skill, you should have:
 This skill configured your repository for AWS Deployer by:
 
 1. ✓ Detecting repository information from Git
-2. ✓ Asking for S3 bucket name and AWS region
+2. ✓ Getting S3 bucket and AWS region (from environment variables or by asking)
 3. ✓ Creating GitHub Actions workflow
 4. ✓ Ensuring CloudFormation template has required parameters
 5. ✓ Creating parameter files for local testing
