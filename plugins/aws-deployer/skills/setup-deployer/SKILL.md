@@ -1,6 +1,6 @@
 ---
 name: setup-deployer
-description: Interactive guide for setting up AWS Deployer - a serverless CloudFormation deployment automation system. Use when helping users install, configure, and test AWS Deployer for single or multi-account deployments.
+description: Interactive guide for installing and configuring AWS Deployer infrastructure - builds Lambda functions, deploys CloudFormation stacks, and sets up multi-account targets and GitHub OIDC integration.
 ---
 
 # AWS Deployer Setup and Configuration
@@ -26,8 +26,7 @@ When this skill is invoked, you are helping the user set up AWS Deployer from sc
 4. **Deploy infrastructure** - Help construct and execute the CloudFormation deployment command
 5. **Configure targets** - Set up deployment targets for multi-account mode (if applicable)
 6. **Setup GitHub integration** - Configure OIDC roles and secrets for CI/CD
-7. **Test the setup** - Walk through a test deployment to verify everything works
-8. **Troubleshoot issues** - Help diagnose and fix any problems that arise
+7. **Verify setup** - Confirm all infrastructure is deployed correctly
 
 **Important**: This is an **interactive, step-by-step process**. Don't just provide all the instructions at once. Ask questions, wait for responses, verify each step is complete before moving to the next one, and adapt to the user's specific needs.
 
@@ -318,99 +317,7 @@ jobs:
 - `S3Bucket` - Artifacts bucket name
 - `S3Prefix` - S3 path to artifacts in format `{repo}/{branch}/{version}`
 
-### 8. Test the Setup
-
-Guide the user through a test deployment:
-
-1. **Create test files:**
-
-   **CloudFormation template** (`cloudformation.template`):
-   ```yaml
-   AWSTemplateFormatVersion: '2010-09-09'
-   Description: Test deployment
-   Parameters:
-     Env:
-       Type: String
-       Default: dev
-       Description: Environment name
-     Version:
-       Type: String
-       Description: Build version
-     S3Bucket:
-       Type: String
-       Description: Artifacts bucket
-     S3Prefix:
-       Type: String
-       Description: S3 prefix for artifacts (repo/branch/version)
-   Resources:
-     TestBucket:
-       Type: AWS::S3::Bucket
-       Properties:
-         BucketName: !Sub 'test-bucket-${Env}-${AWS::AccountId}'
-         Tags:
-           - Key: Version
-             Value: !Ref Version
-           - Key: ArtifactsLocation
-             Value: !Sub 's3://${S3Bucket}/${S3Prefix}'
-   ```
-
-   **Parameters file** (`cloudformation-params.json`) - dynamically generated:
-   ```bash
-   # Generate the required parameters
-   cat > cloudformation-params.json <<EOF
-   {
-     "Env": "dev",
-     "Version": "1.test123",
-     "S3Bucket": "<bucket>",
-     "S3Prefix": "test-repo/main/1.test123"
-   }
-   EOF
-   ```
-
-   **Optional: Environment-specific overrides** (`cloudformation-params.dev.json`):
-   ```json
-   {
-     "AdditionalParam": "dev-specific-value"
-   }
-   ```
-
-   Note: Environment-specific parameter files merge with base parameters. The standard parameters (Env, Version, S3Bucket, S3Prefix) should always be in `cloudformation-params.json`.
-
-2. **Upload to S3:**
-
-   ```bash
-   # S3 path format: s3://{bucket}/{repo}/{branch}/{version}/
-   aws s3 cp cloudformation.template s3://<bucket>/test-repo/main/1.test123/
-   aws s3 cp cloudformation-params.json s3://<bucket>/test-repo/main/1.test123/
-   # Optional: Environment-specific parameters
-   aws s3 cp cloudformation-params.dev.json s3://<bucket>/test-repo/main/1.test123/
-   ```
-
-3. **Monitor the deployment:**
-
-   ```bash
-# Watch Step Function executions
-aws stepfunctions list-executions \
-  --state-machine-arn $(aws ssm get-parameter \
-    --name "/<env>/aws-deployer/state-machine-arn" \
-    --query 'Parameter.Value' \
-    --output text)
-
-# Watch Lambda logs
-aws logs tail /aws/lambda/<env>-aws-deployer-s3-trigger --follow
-
-# Check build record in DynamoDB
-aws dynamodb query \
-  --table-name <env>-aws-deployer--builds \
-  --key-condition-expression "pk = :pk" \
-  --expression-attribute-values '{":pk":{"S":"test-repo/<env>"}}'
-```
-
-4. **Access the web UI (if custom domain configured):**
-   - Navigate to https://<domain-name>
-   - Verify builds are visible in the UI
-
-### 9. Multi-Account IAM Setup (Multi-Account Mode Only)
+### 8. Multi-Account IAM Setup (Multi-Account Mode Only)
 
 For multi-account deployments, set up IAM roles in target accounts:
 
@@ -487,11 +394,12 @@ Should return `CREATE_COMPLETE` or `UPDATE_COMPLETE`.
 
 After setup is complete, guide the user to:
 
-1. Review CLAUDE.md for development workflow
-2. Read MULTI.md for multi-account deployment details (if applicable)
-3. Explore DEPLOYMENT_TARGETS.md for advanced target configuration
-4. Set up monitoring and alerting for Step Functions
-5. Configure additional repositories for automated deployments
+1. Use the `deploy` skill to test their first deployment
+2. Review CLAUDE.md for development workflow
+3. Read MULTI.md for multi-account deployment details (if applicable)
+4. Explore DEPLOYMENT_TARGETS.md for advanced target configuration
+5. Set up monitoring and alerting for Step Functions
+6. Configure additional repositories for automated deployments
 
 ## Reference Commands
 
